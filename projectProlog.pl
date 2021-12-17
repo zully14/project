@@ -129,3 +129,6 @@ slash(List_input) :- listPos(List_input, 47, Pos),
 /* query */
 query(Input) :- string_codes(Input, List_input), member(35, List_input), !, fail.
 query(Input).
+
+/* fragment */
+fragment(Input).
