@@ -29,3 +29,9 @@ identificatore_host(Input) :- string_codes(Input, List_input), ids(List_input).
 ids([L| _]) :- idH(L), ! , fail.
 ids([_ | Ls]) :- ids(Ls).
 ids([_]).
+
+/* elimina gli spazi */
+
+elimina_spazi([], []).
+elimina_spazi([255 | Tail], Tail ) :- !.
+elimina_spazi([Head | Tail], [Head, X]) :-  elimina_spazi(Tail, X).
