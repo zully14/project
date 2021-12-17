@@ -35,3 +35,6 @@ ids([_]).
 elimina_spazi([], []).
 elimina_spazi([255 | Tail], Tail ) :- !.
 elimina_spazi([Head | Tail], [Head, X]) :-  elimina_spazi(Tail, X).
+
+/* scheme */
+scheme(Input) :- identificatore(Input), !.
