@@ -38,3 +38,19 @@ elimina_spazi([Head | Tail], [Head, X]) :-  elimina_spazi(Tail, X).
 
 /* scheme */
 scheme(Input) :- identificatore(Input), !.
+
+/* host */
+host(Input) :- identificatore_host(Input), !.
+host(Input) :- indirizzo_ip(Input), !.
+host(Input) :- string_codes(Input, List_input), member(46, List_input),
+               point(List_input), !.
+
+point(List_input) :- listPos(List_input, 46, Pos),
+                     atom_codes(Atom, List_input),
+                     sub_atom(Atom, 0, Pos, After, SubAtom),
+                     identificatore_host(SubAtom),
+                     length(List_input, X),
+                     Pos2 is Pos+1,
+                     C is X-Pos2,
+                     sub_atom(Atom, Pos2, C, After1, SubAtom1),
+                     identificatore_host(SubAtom1).
