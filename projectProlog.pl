@@ -125,3 +125,7 @@ slash(List_input) :- listPos(List_input, 47, Pos),
                      C is X-Pos2,
                      sub_atom(Atom, Pos2, C, After1, SubAtom1),
                      identificatore(SubAtom1).
+
+/* query */
+query(Input) :- string_codes(Input, List_input), member(35, List_input), !, fail.
+query(Input).
