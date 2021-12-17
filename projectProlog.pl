@@ -57,3 +57,6 @@ point(List_input) :- listPos(List_input, 46, Pos),
 
 /* userinfo */
 userinfo(Input) :- identificatore(Input), !.
+
+/* port */
+port(Input) :- digit255(Input), !.
