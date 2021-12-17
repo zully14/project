@@ -60,3 +60,41 @@ userinfo(Input) :- identificatore(Input), !.
 
 /* port */
 port(Input) :- digit255(Input), !.
+
+/* authority */
+authority(Input) :- atom_codes(Input, List_input), aut(List_input), !.
+authority(Input) :- host(Input), !.
+
+aut([X, X | Y]) :- X == 47, userinfoaut(Y), !.
+aut([X, X | Y]) :- X == 47, host(Y), !.
+
+listPos([X|_], X, 0).
+listPos([_|Tail], X, Pos) :- listPos(Tail, X, P), Pos is P+1.
+
+userinfoaut(Y) :- string_codes(Y, List_input),
+                  member(64, List_input), !,
+                  listPos(List_input, 64, Pos),
+                  atom_string(List_input, List),
+                  sub_atom(List, 0, Pos, After, Q),
+                  identificatore(Q),
+                  hostaut(Y).
+
+hostaut(Y) :- host(Y), !.
+
+string_codes(Y, List_input),
+              member(58, List_input),
+              length(List_input, X),
+              atom_string(List, List_input),
+              len is X-1,
+              sub_atom(List, Pos2, len, After, SubAtom),
+              port(SubAtom).
+
+hostaut(Y) :- string_codes(Y, List_input),
+              member(58, List_input),
+              listPos(List_input, 58, Pos),
+              length(List_input, X),
+              atom_string(List, List_input),
+              Pos2 is Pos+1,
+              C is X-Pos2,
+              sub_atom(List, Pos2, C, After, SubAtom),
+              port(SubAtom).
