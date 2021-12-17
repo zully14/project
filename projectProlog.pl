@@ -15,3 +15,17 @@ identificatore(Input) :- string_codes(Input, List_input), ide(List_input).
 ide([L| _]) :- id(L), ! , fail.
 ide([_ | Ls]) :- ide(Ls).
 ide([_]).
+
+/* caratteri non validi per identificatore_host */
+idH(64). %@
+idH(47). %/
+idH(63). %?
+idH(35). %#
+idH(58). %:
+idH(46). %.
+
+identificatore_host(Input) :- string_codes(Input, List_input), ids(List_input).
+
+ids([L| _]) :- idH(L), ! , fail.
+ids([_ | Ls]) :- ids(Ls).
+ids([_]).
