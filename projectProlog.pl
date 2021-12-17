@@ -110,3 +110,18 @@ validate_point(L):- nth1(12, L, 46), nth1(8, L, 46), nth1(4, L, 46),
 
 validate_number([L | Ls]):- digit(L), validate_number(Ls), !.
 validate_number([]).
+
+/* path */
+path(Input) :- identificatore(Input), !.
+path(Input) :- string_codes(Input, List_input), member(47, List_input),
+               slash(List_input), !.
+
+slash(List_input) :- listPos(List_input, 47, Pos),
+                     atom_codes(Atom, List_input),
+                     sub_atom(Atom, 0, Pos, After, SubAtom),
+                     identificatore(SubAtom),
+                     length(List_input, X),
+                     Pos2 is Pos+1,
+                     C is X-Pos2,
+                     sub_atom(Atom, Pos2, C, After1, SubAtom1),
+                     identificatore(SubAtom1).
