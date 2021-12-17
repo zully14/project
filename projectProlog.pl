@@ -54,3 +54,6 @@ point(List_input) :- listPos(List_input, 46, Pos),
                      C is X-Pos2,
                      sub_atom(Atom, Pos2, C, After1, SubAtom1),
                      identificatore_host(SubAtom1).
+
+/* userinfo */
+userinfo(Input) :- identificatore(Input), !.
