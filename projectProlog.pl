@@ -157,3 +157,6 @@ at(List_codes) :- listPos(List_codes, 64, Pos),
                   userinfo(SubAtomAt),
                   sub_atom(Atom, Pos, A, _, SubAtomRest),
                   host(SubAtomRest).
+
+/* news */
+news(Input) :- host(Input), !.
