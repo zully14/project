@@ -172,3 +172,11 @@ controlX(List_codes) :- member(X, List_codes), X > 96, X < 123, !.
 /* id8 */
 id8(Input) :- atom_codes(Input, List_codes), length(List_codes, Y), Y > 8, !, fail.
 id8(Input) :- atom_codes(Input, List_codes), controlX(List_codes), !.
+
+/* id44 da controllare */
+id44(Input) :- atom_codes(Input, List_codes),
+               length(List_codes, Y),
+               Y is 1,
+               member(46, List_codes), !.
+id44(Input) :- atom_codes(Input, List_codes), length(List_codes, Y), Y > 44, !, fail.
+id44(Input) :- atom_codes(Input, List_codes), controlX(List_codes), !.
