@@ -160,3 +160,6 @@ at(List_codes) :- listPos(List_codes, 64, Pos),
 
 /* news */
 news(Input) :- host(Input), !.
+
+/* tel e fax */
+telfax(Input) :- userinfo(Input), !.
