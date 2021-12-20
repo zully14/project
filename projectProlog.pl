@@ -10,7 +10,7 @@ id(63). %?
 id(35). %#
 id(58). %:
 
-identificatore(Input) :- atom_codes(Input, List_input), ide(List_input).
+identificatore(Input) :- atom_codes(Input, List_input), ide(List_input), !.
 
 ide([L| _]) :- id(L), ! , fail.
 ide([_ | Ls]) :- ide(Ls).
@@ -24,7 +24,7 @@ idH(35). %#
 idH(58). %:
 idH(46). %.
 
-identificatore_host(Input) :- atom_codes(Input, List_input), ids(List_input).
+identificatore_host(Input) :- atom_codes(Input, List_input), ids(List_input), !.
 
 ids([L| _]) :- idH(L), ! , fail.
 ids([_ | Ls]) :- ids(Ls).
@@ -36,22 +36,26 @@ elimina_spazi([], []).
 elimina_spazi([255 | Tail], Tail ) :- !.
 elimina_spazi([Head | Tail], [Head, X]) :-  elimina_spazi(Tail, X).
 
+/* posizione */
+listPos([X|_], X, 1).
+listPos([_|Tail], X, Pos) :- listPos(Tail, X, P), Pos is P + 1.
+
 /* scheme */
 scheme(Input) :- identificatore(Input), !.
 
 /* host */
 host(Input) :- identificatore_host(Input), !.
+host(Input) :- atom_codes(Input, List_codes), point(List_codes), !.
 host(Input) :- indirizzo_ip(Input), !.
 
-point(List_input) :- listPos(List_input, 46, Pos),
-                     atom_codes(Atom, List_input),
-                     sub_atom(Atom, 0, Pos, After, SubAtom),
-                     identificatore_host(SubAtom),
-                     length(List_input, X),
-                     Pos2 is Pos+1,
-                     C is X-Pos2,
-                     sub_atom(Atom, Pos2, C, After1, SubAtom1),
-                     identificatore_host(SubAtom1).
+point(List_codes) :- listPos(List_codes, 46, Pos),
+                     atom_codes(Atom, List_codes),
+                     P is Pos - 1,
+                     sub_atom(Atom, 0, P, After, SubAtomIdH),
+                     identificatore_host(SubAtomIdH),
+                     A is After - 1,
+                     sub_atom(Atom, Pos, A, _, SubAtomIdHost),
+                     identificatore_host(SubAtomIdHost).
 
 /* userinfo */
 userinfo(Input) :- identificatore(Input), !.
@@ -98,14 +102,10 @@ twopoints(List_codes):- member(58, List_codes), !,
                         host(SubAtomHost), !,
                         port(SubAtomPoints).
 
-
-listPos([X|_], X, 1).
-listPos([_|Tail], X, Pos) :- listPos(Tail, X, P), Pos is P + 1.
-
-
-
 /* indirizzo_ip */
-indirizzo_ip(Input):- atom_codes(Input, List_input), length(List_input, 15), !, validate_point(List_input).
+indirizzo_ip(Input):- atom_codes(Input, List_input),
+                      length(List_input, 15), !,
+                      validate_point(List_input).
 
 validate_point(L):- nth1(12, L, 46), nth1(8, L, 46), nth1(4, L, 46),
                     atom_codes(String, L),
@@ -118,23 +118,42 @@ validate_number([]).
 
 /* path */
 path(Input) :- identificatore(Input), !.
-path(Input) :- atom_codes(Input, List_input), member(47, List_input),
-               slash(List_input), !.
+path(Input) :- atom_codes(Input, List_codes),
+               member(47, List_codes),
+               slash(List_codes), !.
 
-slash(List_input) :- listPos(List_input, 47, Pos),
-                     atom_codes(Atom, List_input),
-                     sub_atom(Atom, 0, Pos, After, SubAtom),
-                     identificatore(SubAtom),
-                     length(List_input, X),
-                     Pos2 is Pos+1,
-                     C is X-Pos2,
-                     sub_atom(Atom, Pos2, C, After1, SubAtom1),
-                     identificatore(SubAtom1).
+slash(List_codes) :- listPos(List_codes, 47, Pos),
+                     atom_codes(Atom, List_codes),
+                     P is Pos - 1,
+                     sub_atom(Atom, 0, P, After, SubAtomId),
+                     identificatore(SubAtomId),
+                     A is After - 1,
+                     sub_atom(Atom, Pos, A, _, SubAtomIde),
+                     identificatore(SubAtomIde).
 
 /* query */
-query(Input) :- atom_codes(Input, List_input), member(35, List_input), !, fail.
+query(Input) :- atom_codes(Input, List_codes), member(35, List_codes), !, fail.
 query(Input).
 
 /* fragment */
 fragment(Input).
 
+/* scheme_syntax */
+scheme_syntax(Input) :- mailto(Input), !.
+scheme_syntax(Input) :- news(Input), !.
+scheme_syntax(Input) :- telfax(Input), !.
+
+/* mailto */
+mailto(Input) :- userinfo(Input), !.
+mailto(Input) :- string_codes(Input, List_codes),
+                 member(64, List_codes),
+                 at(List_codes), !.
+
+at(List_codes) :- listPos(List_codes, 64, Pos),
+                  atom_codes(Atom, List_codes),
+                  P is Pos - 1,
+                  sub_atom(Atom, 0, P, After, SubAtomAt),
+                  A is After - 1,
+                  userinfo(SubAtomAt),
+                  sub_atom(Atom, Pos, A, _, SubAtomRest),
+                  host(SubAtomRest).
