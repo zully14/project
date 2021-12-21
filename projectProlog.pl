@@ -10,7 +10,7 @@ id(63). %?
 id(35). %#
 id(58). %:
 
-identificatore(Input) :- string_codes(Input, List_input), ide(List_input).
+identificatore(Input) :- atom_codes(Input, List_input), ide(List_input).
 
 ide([L| _]) :- id(L), ! , fail.
 ide([_ | Ls]) :- ide(Ls).
@@ -24,7 +24,7 @@ idH(35). %#
 idH(58). %:
 idH(46). %.
 
-identificatore_host(Input) :- string_codes(Input, List_input), ids(List_input).
+identificatore_host(Input) :- atom_codes(Input, List_input), ids(List_input).
 
 ids([L| _]) :- idH(L), ! , fail.
 ids([_ | Ls]) :- ids(Ls).
@@ -42,8 +42,6 @@ scheme(Input) :- identificatore(Input), !.
 /* host */
 host(Input) :- identificatore_host(Input), !.
 host(Input) :- indirizzo_ip(Input), !.
-host(Input) :- string_codes(Input, List_input), member(46, List_input),
-               point(List_input), !.
 
 point(List_input) :- listPos(List_input, 46, Pos),
                      atom_codes(Atom, List_input),
@@ -62,48 +60,55 @@ userinfo(Input) :- identificatore(Input), !.
 port(Input) :- digit255(Input), !.
 
 /* authority */
-authority(Input) :- atom_codes(Input, List_input), aut(List_input), !.
-authority(Input) :- host(Input), !.
+authority(Input) :- atom_codes(Input, List_input), c_aut(List_input).
 
-aut([X, X | Y]) :- X == 47, userinfoaut(Y), !.
-aut([X, X | Y]) :- X == 47, host(Y), !.
+c_aut([X, X | Y]) :- X == 47, member(64, Y), !, aut(Y), !.
+c_aut([X, X | Y]) :- X == 47, member(58, Y), !, twopoints(Y), !.
+c_aut([X, X | Y]) :- X == 47, atom_codes(Atom, Y), host(Atom), !.
 
-listPos([X|_], X, 0).
-listPos([_|Tail], X, Pos) :- listPos(Tail, X, P), Pos is P+1.
+aut(List_codes):-length(List_codes, Length_list),
+            listPos(List_codes, 64, Pos),
+            P is Pos - 1,
+            atom_codes(Atom, List_codes),
+            sub_atom(Atom, 0, P, After, SubAtomAt), %stringa fino a PRIMA di @
+            A is After - 1, 
+            sub_atom(Atom, Pos, A, _ , SubAtomRest), % da @ in poi quindi vado a richiamare twopoints per vedere se ho anche present i due punti 
+            atom_codes(SubAtomRest, List_SubAtomRest),
+            twopoints(List_SubAtomRest).
 
-userinfoaut(Y) :- string_codes(Y, List_input),
-                  member(64, List_input), !,
-                  listPos(List_input, 64, Pos),
-                  atom_string(List_input, List),
-                  sub_atom(List, 0, Pos, After, Q),
-                  identificatore(Q),
-                  hostaut(Y).
+aut(List_codes):- length(List_codes, Length_list),
+            listPos(List_codes, 64, Pos),
+            P is Pos - 1,
+            atom_codes(Atom, List_codes),
+            sub_atom(Atom, 0, P, After, SubAtomAt), %stringa fino a PRIMA di @
+            A is After - 1, 
+            sub_atom(Atom, Pos, A, _ , SubAtomRest), % da @ in poi quindi vado a richiamare twopoints per vedere se ho anche present i due punti 
+            atom_codes(SubAtomRest, List_SubAtomRest),
+            host(SubAtomRest), !, 
+            userinfo(SubAtomAt).
 
-hostaut(Y) :- host(Y), !.
+twopoints(List_codes):- member(58, List_codes), !,
+                        length(List_codes, Length),
+                        listPos(List_codes, 58, Pos), 
+                        L is Length - Pos,
+                        atom_codes(Atom, List_codes),
+                        sub_atom(Atom, Pos, L, _, SubAtomPoints), % prende stringa dopo due punti
+                        A is Length - L - 1,
+                        sub_atom(Atom, 0,  A, _, SubAtomHost), %prende stringa host
+                        host(SubAtomHost), !,
+                        port(SubAtomPoints).
 
-string_codes(Y, List_input),
-              member(58, List_input),
-              length(List_input, X),
-              atom_string(List, List_input),
-              len is X-1,
-              sub_atom(List, Pos2, len, After, SubAtom),
-              port(SubAtom).
 
-hostaut(Y) :- string_codes(Y, List_input),
-              member(58, List_input),
-              listPos(List_input, 58, Pos),
-              length(List_input, X),
-              atom_string(List, List_input),
-              Pos2 is Pos+1,
-              C is X-Pos2,
-              sub_atom(List, Pos2, C, After, SubAtom),
-              port(SubAtom).
+listPos([X|_], X, 1).
+listPos([_|Tail], X, Pos) :- listPos(Tail, X, P), Pos is P + 1.
+
+
 
 /* indirizzo_ip */
-indirizzo_ip(Input):- atom_codes(Input, List_input), validate_point(List_input).
+indirizzo_ip(Input):- atom_codes(Input, List_input), length(List_input, 15), !, validate_point(List_input).
 
 validate_point(L):- nth1(12, L, 46), nth1(8, L, 46), nth1(4, L, 46),
-                    string_codes(String, L),
+                    atom_codes(String, L),
                     split_string(String, ".", "", List_string),
                     length(List_string, 4),
                     validate_number(List_string).
@@ -113,7 +118,7 @@ validate_number([]).
 
 /* path */
 path(Input) :- identificatore(Input), !.
-path(Input) :- string_codes(Input, List_input), member(47, List_input),
+path(Input) :- atom_codes(Input, List_input), member(47, List_input),
                slash(List_input), !.
 
 slash(List_input) :- listPos(List_input, 47, Pos),
@@ -127,7 +132,7 @@ slash(List_input) :- listPos(List_input, 47, Pos),
                      identificatore(SubAtom1).
 
 /* query */
-query(Input) :- string_codes(Input, List_input), member(35, List_input), !, fail.
+query(Input) :- atom_codes(Input, List_input), member(35, List_input), !, fail.
 query(Input).
 
 /* fragment */
