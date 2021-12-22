@@ -181,7 +181,53 @@ id44(Input) :- atom_codes(Input, List_codes),
 id44(Input) :- atom_codes(Input, List_codes), length(List_codes, Y), Y > 44, !, fail.
 id44(Input) :- atom_codes(Input, List_codes), controlX(List_codes), !.
 
-/* uri scheme: */
+/*ZOS*/
+
+zos(Input):- id44(Input), 
+             Zos = Input, !.
+
+zos(Input):- atom_codes(Input, List_codes), member(28, List_codes), 
+            member(29, List_codes), !,
+            listPos(List_codes, 28, X), length(List_codes, Length),
+            atom_codes(Atom, List_codes),
+            L is Length - X;
+            sub_atom(Atom, 0, L, After, SubAtom),
+            id44(SubAtom), !, 
+            A is After - 2,
+            sub_atom(Atom, X, A, _,SubAtom2),
+            id8(SubAtom2), !,
+            atom_concat(SubAtom + SubAtom2, Zos).
+
+
+
+uri_parse(Uri_string, Uri):- string_codes(Uri_string, Uri_codes), 
+                            member(58, Uri_codes), !,
+                            length(Uri_codes, Length),
+                            listPos(Uri_codes, 58, Pos),
+                            atom_codes(Uri_Atom, Uri_codes),
+                            P is Pos - 1,
+                            sub_atom(Uri_Atom, 0, P, After, Scheme),
+                            A is After - 1,
+                            sub_atom(Uri_Atom, Pos, A, _, Rest),
+                            uri(Scheme, Rest).
+
+uri(Scheme, Rest):- identificatore(Scheme), 
+                    Rest = [].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* uri scheme: 
 uri(Input):- string_codes(Input, List_codes),
               member(58, List_codes), !,
               listPos(List_codes, 58, Pos),
@@ -193,7 +239,7 @@ uri(Input):- string_codes(Input, List_codes),
               sub_atom(Atom, Pos, A, _, SubAtomRest),
               controltwoslash(SubAtomRest).
 
-/* solo authority */
+/* solo authority 
 controltwoslash(Input):- atom_codes(Input, List_codes),
                          member(47, List_codes), !,
                          listPos(List_codes, 47, 1),
@@ -201,7 +247,7 @@ controltwoslash(Input):- atom_codes(Input, List_codes),
                          atom_codes(Atom, List_codes),
                          authority(Atom), !.
 
-/* anche parte opzionale */
+/* anche parte opzionale 
 controltwoslash(Input):- atom_codes(Input, List_codes),
                           member(47, List_codes), !,
                           listPos(List_codes, 47, 1),
@@ -209,7 +255,7 @@ controltwoslash(Input):- atom_codes(Input, List_codes),
                           atom_codes(Atom, List_codes),
                           controlrest(Atom).
 
-/* se question false allora controllo hash*/
+/* se question false allora controllo hash
 controlrest(Input):- atom_codes(Input, List_codes),
                      member(47, List_codes), !,
                      listPos(List_codes, 47, Pos),
@@ -222,7 +268,7 @@ controlrest(Input):- atom_codes(Input, List_codes),
                      sub_atom(Atom, Pos, A, _, SubAtomRest),
                      controlquestion(SubAtomRest), !.
 
-/* se hash false allora rimane solo path */
+/* se hash false allora rimane solo path 
 controlrest(Input):- atom_codes(Input, List_codes),
                      member(47, List_codes), !,
                      listPos(List_codes, 47, Pos),
@@ -235,7 +281,7 @@ controlrest(Input):- atom_codes(Input, List_codes),
                      sub_atom(Atom, Pos, A, _, SubAtomRest),
                      controlhash(SubAtomRest), !.
 
-/* controllo path */
+/* controllo path 
 controlrest(Input):- atom_codes(Input, List_codes),
                      member(47, List_codes), !,
                      listPos(List_codes, 47, Pos),
@@ -248,7 +294,7 @@ controlrest(Input):- atom_codes(Input, List_codes),
                      sub_atom(Atom, Pos, A, _, SubAtomRest),
                      path(SubAtomRest).
 
-/* controllo se dopo question c'è anche hash */
+/* controllo se dopo question c'è anche hash 
 controlquestion(Input):- atom_codes(Input, List_codes),
                          member(63, List_codes), !,
                          listPos(List_codes, 63, Pos),
@@ -281,7 +327,7 @@ controlquestion(Input):- atom_codes(Input, List_codes),
                          sub_atom(Atom, Pos, A, _, SubAtomRest),
                          controlhash(SubAtomRest).
 
-/* controllo hash */
+ controllo hash 
 controlhash(Input):- atom_codes(Input, List_codes),
                      member(35, List_codes), !,
                      listPos(List_codes, 35, Pos),
@@ -290,4 +336,5 @@ controlhash(Input):- atom_codes(Input, List_codes),
                      sub_atom(Atom, 0, P, _, SubAtomQuery),
                      fragment(SubAtomQuery).
 
-/* se question e hash sono false allora controlpath */
+ se question e hash sono false allora controlpath 
+ */
